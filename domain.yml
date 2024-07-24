@@ -1,0 +1,36 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - bot_challenge
+  # - job_posting
+  - hr_policy
+  # - job_category
+
+entities:
+  - content_type
+
+slots:
+  content_type:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: content_type
+
+responses:
+  utter_goodbye:
+  - text: "Bye"
+
+  utter_iamabot:
+  - text: "I am a bot, powered by Rasa."
+
+actions:
+- action_greet
+- action_hr_policy
+
+
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

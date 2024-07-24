@@ -1,0 +1,29 @@
+version: "3.1"
+
+stories:
+
+- story: happy path
+  steps:
+  - intent: greet
+  - action: action_greet
+
+- story: sad path 1
+  steps:
+  - intent: greet
+  - action: action_greet
+
+- story: sad path 2
+  steps:
+  - intent: greet
+  - action: action_greet
+
+- story: hr policy
+  steps:
+  - intent: hr_policy
+    entities: 
+    - content_type: "remote"
+  - slot_was_set:
+    - content_type: "remote"
+  - action: action_hr_policy
+
+
