@@ -17,8 +17,3 @@ rules:
   - intent: greet
   - action: action_greet
 
-
-# - rule: Job Category
-#   steps:
-#   - intent: job_category
-#   - action: action_job_category

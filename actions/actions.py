@@ -75,15 +75,10 @@ class ActionHrPolicy(Action):
                             "payload": f'/policy_type{"policy_name": {p_template.name},}',
                             "title": p_template.title
                         })
-                    buttons.append(
-                        {"payload": '/policy_type{"policy_name": None}', "title": "Create you own"}
-                    )
-                    dispatcher.utter_message(text=message, buttons=buttons)
-                else:
-                    buttons.append(
-                        {"payload": '/policy_type{"policy_name": None}', "title": "Create you own"}
-                    )
-                    dispatcher.utter_message(text=message, buttons=buttons)
+                buttons.append(
+                    {"payload": '/policy_type{"policy_name": None}', "title": "Create you own"}
+                )
+                dispatcher.utter_message(text=message, buttons=buttons)
             else:
                 message = "You have selected HR policy. \nWhat policy would you like to create?"
                 dispatcher.utter_message(text=message,)
