@@ -1,34 +1,81 @@
-version: "3.1"
+version: '3.1'
+config:
+  store_entities_as_slots: true
 
 intents:
-  - greet
-  - goodbye
-  - bot_challenge
-  # - job_posting
-  - hr_policy
-  # - job_category
+- bot_challenge
+- goodbye
+- greet
+- hr_policy
+- select_option
+- policy_type
+- select_flexible_work_option
 
 entities:
-  - content_type
+- hr_policy_type
+- option
+- policy_name
+- flexible_work_option
 
 slots:
-  content_type:
+  hr_policy_type:
     type: text
     mappings:
-      - type: from_entity
-        entity: content_type
+    - type: from_entity
+      entity: hr_policy_type
+    influence_conversation: false
+  
+  option:
+    type: categorical
+    values:
+    - Job Post
+    - HR Policy
+    - Team activity information
+    mappings:
+    - type: from_entity
+      entity: option
+
+  policy_name:
+    type: text
+    mappings:
+    - type: from_entity
+      entity: policy_name
+
+  selected_flexible_work_options:
+    type: list
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: flexible_work_option
 
 responses:
   utter_goodbye:
-  - text: "Bye"
-
+  - text: Bye
   utter_iamabot:
-  - text: "I am a bot, powered by Rasa."
+  - text: I am a bot, powered by Rasa.
+  utter_ask_flexible_work_option:
+  - text: "Here are the options for Flexible Work Policy. Please select the options you are interested in:"
+    buttons:
+      - title: "Flexible hours"
+        payload: '/select_flexible_work_option{"flexible_work_option":"a"}'
+      - title: "Remote work"
+        payload: '/select_flexible_work_option{"flexible_work_option":"b"}'
+      - title: "Compressed workweek"
+        payload: '/select_flexible_work_option{"flexible_work_option":"c"}'
+      - title: "Part-time work"
+        payload: '/select_flexible_work_option{"flexible_work_option":"d"}'
+      - title: "Unpaid leave"
+        payload: '/select_flexible_work_option{"flexible_work_option":"e"}'
+      - title: "Irregular schedule"
+        payload: '/select_flexible_work_option{"flexible_work_option":"f"}'
+      - title: "Job sharing"
+        payload: '/select_flexible_work_option{"flexible_work_option":"g"}'
 
 actions:
-- action_greet
 - action_hr_policy
-
+- action_greet
+- action_policy_type
+- action_select_flexible_work_option
 
 
 session_config:

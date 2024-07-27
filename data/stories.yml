@@ -17,13 +17,21 @@ stories:
   - intent: greet
   - action: action_greet
 
-- story: hr policy
+- story: user_select_hr_policy
   steps:
-  - intent: hr_policy
-    entities: 
-    - content_type: "remote"
-  - slot_was_set:
-    - content_type: "remote"
+  - intent: select_option
+    entities:
+    - option: "selected_hr_policy"
   - action: action_hr_policy
+  - intent: hr_policy
+  - action: action_hr_policy
+  - slot_was_set: 
+    - hr_policy_type: remote
 
 
+- story: select a policy
+  steps:
+  - intent: policy_type
+    entities:
+      - policy_name: Flexible work
+  - action: action_policy_type
