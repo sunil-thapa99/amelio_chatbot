@@ -32,6 +32,6 @@ stories:
 - story: select a policy
   steps:
   - intent: policy_type
-    entities:
-      - policy_name: Flexible work
   - action: action_policy_type
+  - slot_was_set:
+      - policy_name: flexible

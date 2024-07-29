@@ -40,6 +40,7 @@ slots:
     mappings:
     - type: from_entity
       entity: policy_name
+    influence_conversation: false
 
   selected_flexible_work_options:
     type: list

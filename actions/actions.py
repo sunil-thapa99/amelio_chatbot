@@ -13,9 +13,26 @@ from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
 
-def get_policy_from_db(hr_policy_type):
+import mysql.connector
+from mysql.connector import errorcode
+
+config = {
+    'host': '127.0.0.1',  # or your MySQL server host
+    'user':'root', 
+    'password':"",
+    # Add 'user' and 'password' fields if your MySQL server requires them
+}
+cnx = mysql.connector.connect(**config)
+cursor = cnx.cursor()
+cursor.execute("USE amelio")
+
+def get_policy_from_db(table_name, attribute_name, value):
+    value = value.lower()
+    query = f"SELECT * FROM {table_name} WHERE {attribute_name}='{value}'"
+    cursor.execute(query)
+    result = cursor.fetchmany()
     # Returns list of policy
-    return []
+    return result
 
 class ActionGreet(Action):
 
@@ -60,23 +77,21 @@ class ActionHrPolicy(Action):
                 hr_policy_type = tracker.get_slot("hr_policy_type")
             except:
                 hr_policy_type = None
-
-            print('--------------------', hr_policy_type)
     
             if hr_policy_type:
                 message = f"You selected: {hr_policy_type} policy."
-                policy_templates = get_policy_from_db(hr_policy_type)
+                policies = get_policy_from_db('hr_policy', 'policy_name', hr_policy_type)
                 buttons = []
-                if policy_templates:
+                if policies:
                     message += "\nHere are some templates for you:"
-                    for p_template in policy_templates:
+                    for p_template in policies:
                         # Suggest as button
                         buttons.append({
-                            "payload": f'/policy_type{"policy_name": {p_template.name},}',
-                            "title": p_template.title
+                            "payload": '/policy_type{"policy_name": "'+p_template[1]+'"}',
+                            "title": p_template[1].capitalize()
                         })
                 buttons.append(
-                    {"payload": '/policy_type{"policy_name": None}', "title": "Create you own"}
+                    {"payload": '/policy_type{"policy_name": None}', "title": "Create your own"}
                 )
                 dispatcher.utter_message(text=message, buttons=buttons)
             else:
@@ -93,10 +108,17 @@ class ActionPolicyType(Action):
         def run(self, dispatcher: CollectingDispatcher,
                 tracker: Tracker,
                 domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-            
-            selected_policy = tracker.get_slot('policy_name')
+            try:
+                selected_policy = tracker.get_slot('policy_name')
+            except:
+                selected_policy = None
+            print('-----------------', selected_policy)
+            # query = f"SELECT * FROM hr_policy_type WHERE {attribute_name}='{value}'"
+            # cursor.execute(query)
+            # result = cursor.fetchmany()
+            selected_policy = get_policy_from_db('hr_policy_type', 'policy_name', selected_policy)
             if selected_policy.lower() == 'flexible work':
-                dispatcher.utter_message(response="utter_ask_flexible_work_option")
+                dispatcher.utter_message()
             else:
                 dispatcher.utter_message(text="No policy type selected")
             return []
