@@ -15,6 +15,7 @@ nlu:
     - goodmorning
     - goodevening
     - good afternoon
+    - Hi
 - intent: goodbye
   examples: |
     - cu
@@ -73,7 +74,7 @@ nlu:
     - I need to develop an HR policy for [remote](hr_policy_type) roles.
     - I want to create hr policy for [Remote](hr_policy_type) job
     - I want to create [hybrid](hr_policy_type) job
-
+    - [Remote]{"entity": "hr_policy_type", "value": "remote"} work
 - intent: policy_type
   examples: |
     - I want to know about the [flexible](policy_name) work policy
@@ -86,16 +87,12 @@ nlu:
     - Show me the details of [non-flexible](policy_name) policy
     - I am interested in the [strict](policy_name) policy
     - Provide information on the [onsite](policy_name) policy
-
 - intent: select_flexible_work_option
   examples: |
-    - I am interested in option {flexible_work_option}
-    - Tell me about option {flexible_work_option}
-    - Select option {flexible_work_option}
-    - Give me more details on option {flexible_work_option}
-    - I choose option {flexible_work_option}
-    - Can you explain option {flexible_work_option}?
-    - I want to know about option {flexible_work_option}
-    - Provide information on option {flexible_work_option}
-    - I would like to hear more about option {flexible_work_option}
-    - Explain option {flexible_work_option} to me
+    - {flexible_work_option: a}
+    - {flexible_work_option: b}
+    - {flexible_work_option: c}
+    - {flexible_work_option: d}
+    - {flexible_work_option: e}
+    - {flexible_work_option: f}
+    - {flexible_work_option: g}

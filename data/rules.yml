@@ -16,4 +16,3 @@ rules:
   steps:
   - intent: greet
   - action: action_greet
-

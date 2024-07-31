@@ -80,7 +80,22 @@ class ActionHrPolicy(Action):
     
             if hr_policy_type:
                 message = f"You selected: {hr_policy_type} policy."
-                policies = get_policy_from_db('hr_policy', 'policy_name', hr_policy_type)
+                # policies = get_policy_from_db('hr_policy', 'policy_name', hr_policy_type)
+                # Fetch all of remote work policies
+                # query = f"SELECT hr_policy_type.* \
+                #             FROM hr_policy_type \
+                #             JOIN hr_policy ON hr_policy_type.hr_policy_id = hr_policy.id \
+                #             WHERE hr_policy.policy_name = '{hr_policy_type}'; \
+                #         "
+                # cursor.execute(query)
+                # policies = cursor.fetchmany()
+                policies = [
+                    ('flexible', 'Flexible Work'),
+                    ('remote', 'Remote Work'),
+                    ('part_time', 'Part-time Work'),
+                    ('unpaid_leave', 'Unpaid Leave'),
+                    ('job_sharing', 'Job Sharing')
+                ]
                 buttons = []
                 if policies:
                     message += "\nHere are some templates for you:"
@@ -116,9 +131,25 @@ class ActionPolicyType(Action):
             # query = f"SELECT * FROM hr_policy_type WHERE {attribute_name}='{value}'"
             # cursor.execute(query)
             # result = cursor.fetchmany()
-            selected_policy = get_policy_from_db('hr_policy_type', 'policy_name', selected_policy)
-            if selected_policy.lower() == 'flexible work':
-                dispatcher.utter_message()
+            # selected_policy = get_policy_from_db('hr_policy_type', 'policy_name', selected_policy)
+            selected_policy = 'flexible'
+            if selected_policy.lower() == 'flexible':
+                options = {
+                    'a': 'Flexible hours: Employees can choose their start and end times, with a mandatory core period (e.g., from 10 AM to 3 PM).',
+                    'b': "Remote work: Employees can work remotely up to 2 days per week, with their manager's approval.",
+                    'c': 'Compressed workweek: Employees can work their weekly hours in fewer days (e.g., four days instead of five).',
+                    'd': 'Part-time work: Employees can choose to work part-time for a determined or undetermined period, with their manager\'s approval.',
+                    'e': 'Unpaid leave: Employees can take unpaid leave in addition to their paid leave, subject to approval.',
+                    'f': 'Irregular schedule: Employees can follow a personalized schedule where their working hours are not fixed from day to day, but their total working hours and pay remain the same.',
+                    'g': 'Job sharing: Two employees can share the responsibilities of a single full-time position, with reduced working hours and shared responsibilities.'
+                }
+                buttons = []
+                for key, value in options.items():
+                    buttons.append({
+                        "payload": '/select_flexible_work_option{"flexible_work_option": "'+key+'"}',
+                        "title": value
+                    })
+                dispatcher.utter_message(text="Please select your flexible work option:", buttons=buttons)
             else:
                 dispatcher.utter_message(text="No policy type selected")
             return []
@@ -129,21 +160,7 @@ class ActionSelectFlexibleWorkOption(Action):
         return "action_select_flexible_work_option"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        selected_option = tracker.get_slot('flexible_work_option')
-
-        # Define the predefined options
-        options = {
-            'a': 'Flexible hours: Employees can choose their start and end times, with a mandatory core period (e.g., from 10 AM to 3 PM).',
-            'b': "Remote work: Employees can work remotely up to 2 days per week, with their manager's approval.",
-            'c': 'Compressed workweek: Employees can work their weekly hours in fewer days (e.g., four days instead of five).',
-            'd': 'Part-time work: Employees can choose to work part-time for a determined or undetermined period, with their manager\'s approval.',
-            'e': 'Unpaid leave: Employees can take unpaid leave in addition to their paid leave, subject to approval.',
-            'f': 'Irregular schedule: Employees can follow a personalized schedule where their working hours are not fixed from day to day, but their total working hours and pay remain the same.',
-            'g': 'Job sharing: Two employees can share the responsibilities of a single full-time position, with reduced working hours and shared responsibilities.'
-        }
-
-        selected_descriptions = options[selected_option]
-
-        dispatcher.utter_message(text=f"You selected the following option for the Flexible Work Policy:\n{selected_descriptions}")
-
-        return [SlotSet('selected_flexible_work_options', selected_descriptions)]
+        flexible_work_option = tracker.get_slot('flexible_work_option')
+        dispatcher.utter_message(text=f"You have selected: {flexible_work_option}")
+        return []
+        # return [SlotSet('flexible_work_option', flexible_work_option)]
