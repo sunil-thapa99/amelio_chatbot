@@ -12,9 +12,19 @@ import random
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
+import json
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
 
 import mysql.connector
 from mysql.connector import errorcode
+
+load_dotenv()
+OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(
+  api_key=OPENAI_KEY
+)
 
 config = {
     'host': '127.0.0.1',  # or your MySQL server host
@@ -25,6 +35,14 @@ config = {
 cnx = mysql.connector.connect(**config)
 cursor = cnx.cursor()
 cursor.execute("USE amelio")
+
+PROMPT_TEMPLATE = """
+You are an expert in drafting HR policies. I am currently working on creating an {job_type}. The policy will include the following condition: {flexible_work_option}.
+Based on this specific clause, please provide a list of detailed questions to consider:
+"""
+
+with open('actions/predefined_questions.json', 'r') as file:
+    predefined_questions = json.load(file)
 
 def get_policy_from_db(table_name, attribute_name, value):
     value = value.lower()
@@ -102,7 +120,7 @@ class ActionHrPolicy(Action):
                     for p_template in policies:
                         # Suggest as button
                         buttons.append({
-                            "payload": '/policy_type{"policy_name": "'+p_template[1]+'"}',
+                            "payload": '/policy_type{"policy_name": "'+p_template[0]+'"}',
                             "title": p_template[1].capitalize()
                         })
                 buttons.append(
@@ -134,15 +152,7 @@ class ActionPolicyType(Action):
             # selected_policy = get_policy_from_db('hr_policy_type', 'policy_name', selected_policy)
             selected_policy = 'flexible'
             if selected_policy.lower() == 'flexible':
-                options = {
-                    'a': 'Flexible hours: Employees can choose their start and end times, with a mandatory core period (e.g., from 10 AM to 3 PM).',
-                    'b': "Remote work: Employees can work remotely up to 2 days per week, with their manager's approval.",
-                    'c': 'Compressed workweek: Employees can work their weekly hours in fewer days (e.g., four days instead of five).',
-                    'd': 'Part-time work: Employees can choose to work part-time for a determined or undetermined period, with their manager\'s approval.',
-                    'e': 'Unpaid leave: Employees can take unpaid leave in addition to their paid leave, subject to approval.',
-                    'f': 'Irregular schedule: Employees can follow a personalized schedule where their working hours are not fixed from day to day, but their total working hours and pay remain the same.',
-                    'g': 'Job sharing: Two employees can share the responsibilities of a single full-time position, with reduced working hours and shared responsibilities.'
-                }
+                options = predefined_questions[selected_policy]
                 buttons = []
                 for key, value in options.items():
                     buttons.append({
@@ -153,7 +163,14 @@ class ActionPolicyType(Action):
             else:
                 dispatcher.utter_message(text="No policy type selected")
             return []
-        
+
+def prompt_engineering(context, prompt):
+    response = client.completions.create(
+        model="gpt-3.5-turbo-instruct",
+        prompt=prompt,
+    )
+    return response.choices[0].text
+
 class ActionSelectFlexibleWorkOption(Action):
 
     def name(self) -> Text:
@@ -161,6 +178,15 @@ class ActionSelectFlexibleWorkOption(Action):
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         flexible_work_option = tracker.get_slot('flexible_work_option')
-        dispatcher.utter_message(text=f"You have selected: {flexible_work_option}")
+        option = tracker.get_slot('option').split('_')
+        option = ' '.join(option[1:])
+        hr_policy_type = tracker.get_slot('hr_policy_type')
+        job_type = f'{hr_policy_type} for {option} work'
+        selected_policy = tracker.get_slot('policy_name')
+        flexible_work_option = predefined_questions[selected_policy].get(flexible_work_option)
+        prompt = PROMPT_TEMPLATE.format(job_type=job_type, flexible_work_option=flexible_work_option)
+        questions = prompt_engineering(context=job_type, prompt=prompt)
+        dispatcher.utter_message(text=questions)
+        # dispatcher.utter_message(text=f"You have selected: {flexible_work_option}")
         return []
         # return [SlotSet('flexible_work_option', flexible_work_option)]
