@@ -239,7 +239,7 @@ function send(message) {
                 $("#userInput").prop("disabled", false);
 
                 // if you want the bot to start the conversation after restart
-                // customActionTrigger();
+                customActionTrigger();
                 return;
             }
             setBotResponse(botResponse);

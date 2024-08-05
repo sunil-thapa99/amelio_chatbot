@@ -44,9 +44,9 @@ slots:
       entity: flexible_work_option
 responses:
   utter_goodbye:
-  - text: Bye
+    - text: Bye
   utter_iamabot:
-  - text: I am a bot, powered by Rasa.
+    - text: I am a bot, powered by Rasa.
 actions:
 - action_select_flexible_work_option
 - action_policy_type

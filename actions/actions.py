@@ -154,12 +154,22 @@ class ActionPolicyType(Action):
             if selected_policy.lower() == 'flexible':
                 options = predefined_questions[selected_policy]
                 buttons = []
-                for key, value in options.items():
-                    buttons.append({
-                        "payload": '/select_flexible_work_option{"flexible_work_option": "'+key+'"}',
-                        "title": value
-                    })
-                dispatcher.utter_message(text="Please select your flexible work option:", buttons=buttons)
+                for key, option_val in options.items():
+                    print(key, type(key), '========================================================', option_val, type(option_val))
+                    buttons.append(
+                        {
+                            "label" : option_val,
+                            "value": "/select_flexible_work_option{'flexible_work_option': '"+key+"'}"
+                        }
+                    )
+                message={"payload":"dropDown","data":buttons}
+                    # buttons.append({
+                    #     "payload": '/select_flexible_work_option{"flexible_work_option": "'+key+'"}',
+                    #     "title": value
+                    # })
+                # dispatcher.utter_message(text="Please select your flexible work option:", buttons=buttons)
+                print('-------------', message, '=================')
+                dispatcher.utter_message(text="Please select your flexible work option:", json_message=message)
             else:
                 dispatcher.utter_message(text="No policy type selected")
             return []

@@ -42,7 +42,7 @@ window.addEventListener('load', () => {
     // $("#userInput").prop('disabled', true);
 
     // if you want the bot to start the conversation
-    // customActionTrigger();
+    customActionTrigger();
   });
   // Toggle the chatbot screen
   $("#profile_div").click(() => {
