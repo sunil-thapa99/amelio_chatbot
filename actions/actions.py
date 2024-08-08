@@ -39,6 +39,7 @@ cursor.execute("USE amelio")
 PROMPT_TEMPLATE = """
 You are an expert in drafting HR policies. I am currently working on creating an {job_type}. The policy will include the following condition: {flexible_work_option}.
 Based on this specific clause, please provide a list of detailed questions to consider:
+Output should be a list of length 5: [Question 1, Question 2, Question 3, Question 4, Question 5]
 """
 
 with open('actions/predefined_questions.json', 'r') as file:
@@ -90,7 +91,6 @@ class ActionHrPolicy(Action):
             #     {"payload": "/hr_policy{'content_type': 'hr_policy'}", "title": "HR Policy"},
             #     {"payload": "/job_posting", "title": "Job Posting"}
             # ]
-            print(tracker.get_intent_of_latest_message(), '=================')
             try:
                 hr_policy_type = tracker.get_slot("hr_policy_type")
             except:
@@ -145,7 +145,6 @@ class ActionPolicyType(Action):
                 selected_policy = tracker.get_slot('policy_name')
             except:
                 selected_policy = None
-            print('-----------------', selected_policy)
             # query = f"SELECT * FROM hr_policy_type WHERE {attribute_name}='{value}'"
             # cursor.execute(query)
             # result = cursor.fetchmany()
@@ -155,26 +154,33 @@ class ActionPolicyType(Action):
                 options = predefined_questions[selected_policy]
                 buttons = []
                 for key, option_val in options.items():
-                    print(key, type(key), '========================================================', option_val, type(option_val))
-                    buttons.append(
-                        {
-                            "label" : option_val,
-                            "value": "/select_flexible_work_option{'flexible_work_option': '"+key+"'}"
-                        }
-                    )
-                message={"payload":"dropDown","data":buttons}
-                    # buttons.append({
-                    #     "payload": '/select_flexible_work_option{"flexible_work_option": "'+key+'"}',
-                    #     "title": value
-                    # })
-                # dispatcher.utter_message(text="Please select your flexible work option:", buttons=buttons)
-                print('-------------', message, '=================')
-                dispatcher.utter_message(text="Please select your flexible work option:", json_message=message)
+                    # buttons.append(
+                    #     {
+                    #         "label" : option_val,
+                    #         "value": "/select_flexible_work_option{'flexible_work_option': '"+key+"'}"
+                    #     }
+                    # )
+                    # "/select_flexible_work_option{'flexible_work_option': 'a'}"
+                # message={"payload":"dropDown","data":buttons}
+                    buttons.append({
+                        "payload": '/select_flexible_work_option{"flexible_work_option": "'+key+'"}',
+                        "title": option_val
+                    })
+                dispatcher.utter_message(text="Please select your flexible work option:", buttons=buttons)
+                # dispatcher.utter_message(text="Please select your flexible work option:", attachment=message)
+                # dispatcher.utter_message(text="Please select your flexible work option:", json_message=message)
             else:
                 dispatcher.utter_message(text="No policy type selected")
             return []
 
-def prompt_engineering(context, prompt):
+def prompt_engineering(prompt):
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "user", "content": prompt},
+        ],
+    )
+    return response.choices[0].message.content
     response = client.completions.create(
         model="gpt-3.5-turbo-instruct",
         prompt=prompt,
@@ -195,8 +201,12 @@ class ActionSelectFlexibleWorkOption(Action):
         selected_policy = tracker.get_slot('policy_name')
         flexible_work_option = predefined_questions[selected_policy].get(flexible_work_option)
         prompt = PROMPT_TEMPLATE.format(job_type=job_type, flexible_work_option=flexible_work_option)
-        questions = prompt_engineering(context=job_type, prompt=prompt)
-        dispatcher.utter_message(text=questions)
+        questions = prompt_engineering(prompt=prompt)
+        attachments = {
+            "questions": questions,
+            "payload": "question_list"
+        }
+        dispatcher.utter_message(attachment=attachments)
         # dispatcher.utter_message(text=f"You have selected: {flexible_work_option}")
         return []
         # return [SlotSet('flexible_work_option', flexible_work_option)]

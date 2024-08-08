@@ -83,3 +83,12 @@ stories:
   - slot_was_set:
     - flexible_work_option: a
   - action: action_select_flexible_work_option
+
+# - story: interactive_story_2
+#   steps:
+#   - intent: select_flexible_work_option
+#     entities:
+#     - flexible_work_option: a
+#   - slot_was_set:
+#     - flexible_work_option: a
+#   - action: action_select_flexible_work_option
